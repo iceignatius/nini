@@ -32,7 +32,7 @@ void node_bool_test(void **state)
 
     assert_true( nini_node_get_bool(node) );
 
-    assert_false( nini_node_have_value(node) );
+    assert_true( nini_node_have_value(node) );
     assert_false( nini_node_have_child(node) );
 
     nini_node_release(node);
@@ -49,7 +49,7 @@ void node_float_test(void **state)
 
     assert_true( nini_node_get_float(node) - 3.14 < 0.001 );
 
-    assert_false( nini_node_have_value(node) );
+    assert_true( nini_node_have_value(node) );
     assert_false( nini_node_have_child(node) );
 
     nini_node_release(node);
@@ -66,7 +66,7 @@ void node_hexa_test(void **state)
 
     assert_int_equal( nini_node_get_integer(node), 0x1357 );
 
-    assert_false( nini_node_have_value(node) );
+    assert_true( nini_node_have_value(node) );
     assert_false( nini_node_have_child(node) );
 
     nini_node_release(node);
@@ -83,7 +83,7 @@ void node_decimal_test(void **state)
 
     assert_int_equal( nini_node_get_integer(node), 13579 );
 
-    assert_false( nini_node_have_value(node) );
+    assert_true( nini_node_have_value(node) );
     assert_false( nini_node_have_child(node) );
 
     nini_node_release(node);
@@ -100,7 +100,7 @@ void node_string_test(void **state)
 
     assert_string_equal( nini_node_get_string(node), "text" );
 
-    assert_false( nini_node_have_value(node) );
+    assert_true( nini_node_have_value(node) );
     assert_false( nini_node_have_child(node) );
 
     nini_node_release(node);
