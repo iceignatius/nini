@@ -52,10 +52,13 @@ typedef struct nini_node_t
             struct nini_node_t *last;
         } childs;
 
-        char  *string;
-        long   integer;
-        double floating;
-        bool   boolean;
+        union
+        {
+            char  *string;
+            long   integer;
+            double floating;
+            bool   boolean;
+        } value;
 
     };
 
