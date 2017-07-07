@@ -1,5 +1,59 @@
+#include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "nini_node.h"
 
+//------------------------------------------------------------------------------
+static inline
+char* clone_string(const char *src)
+{
+#ifdef __unix__
+    return strdup(src);
+#else
+    size_t len = strlen(src);
+    char *str = malloc(len+1);
+    if( !str ) return NULL;
+
+    memcpy(str, src, len);
+    str[len] = 0;
+
+    return str;
+#endif
+}
+//------------------------------------------------------------------------------
+static
+nini_node_t* nini_node_create(nini_type_t type, const char *name)
+{
+    nini_node_t *node = NULL;
+
+    bool succ = false;
+    do
+    {
+        node = calloc(1, sizeof(nini_node_t));
+        if( !node ) break;
+
+        node->type = type;
+
+        if( !name ) break;
+        node->name = clone_string(name);
+        if( !node->name ) break;
+
+        succ = true;
+    } while(false);
+
+    if( !succ )
+    {
+        if( node && node->name )
+            free(node->name);
+
+        if( node )
+            free(node);
+
+        node = NULL;
+    }
+
+    return node;
+}
 //------------------------------------------------------------------------------
 nini_node_t* nini_node_create_section(const char *name)
 {
@@ -11,6 +65,7 @@ nini_node_t* nini_node_create_section(const char *name)
      * @return Instance of the new node if succeed; or
      *         NULL if failed!
      */
+    return nini_node_create(NINI_SECTION, name);
 }
 //------------------------------------------------------------------------------
 nini_node_t* nini_node_create_string(const char *name, const char *value)
@@ -24,6 +79,27 @@ nini_node_t* nini_node_create_string(const char *name, const char *value)
      * @return Instance of the new node if succeed; or
      *         NULL if failed!
      */
+    nini_node_t *node = NULL;
+
+    bool succ = false;
+    do
+    {
+        node = nini_node_create(NINI_STRING, name);
+        if( !node ) break;
+
+        node->value.string = clone_string( value ? value : "" );
+        if( !node->value.string ) break;
+
+        succ = true;
+    } while(false);
+
+    if( !succ )
+    {
+        nini_node_release(node);
+        node = NULL;
+    }
+
+    return node;
 }
 //------------------------------------------------------------------------------
 nini_node_t* nini_node_create_decimal(const char *name, long value)
@@ -37,6 +113,12 @@ nini_node_t* nini_node_create_decimal(const char *name, long value)
      * @return Instance of the new node if succeed; or
      *         NULL if failed!
      */
+    nini_node_t *node = nini_node_create(NINI_DECIMAL, name);
+    if( !node ) return NULL;
+
+    node->value.integer = value;
+
+    return node;
 }
 //------------------------------------------------------------------------------
 nini_node_t* nini_node_create_hexa(const char *name, long value)
@@ -50,6 +132,12 @@ nini_node_t* nini_node_create_hexa(const char *name, long value)
      * @return Instance of the new node if succeed; or
      *         NULL if failed!
      */
+    nini_node_t *node = nini_node_create(NINI_HEXA, name);
+    if( !node ) return NULL;
+
+    node->value.integer = value;
+
+    return node;
 }
 //------------------------------------------------------------------------------
 nini_node_t* nini_node_create_float(const char *name, double value)
@@ -63,6 +151,12 @@ nini_node_t* nini_node_create_float(const char *name, double value)
      * @return Instance of the new node if succeed; or
      *         NULL if failed!
      */
+    nini_node_t *node = nini_node_create(NINI_FLOAT, name);
+    if( !node ) return NULL;
+
+    node->value.floating = value;
+
+    return node;
 }
 //------------------------------------------------------------------------------
 nini_node_t* nini_node_create_bool(const char *name, bool value)
@@ -76,6 +170,12 @@ nini_node_t* nini_node_create_bool(const char *name, bool value)
      * @return Instance of the new node if succeed; or
      *         NULL if failed!
      */
+    nini_node_t *node = nini_node_create(NINI_BOOL, name);
+    if( !node ) return NULL;
+
+    node->value.boolean = value;
+
+    return node;
 }
 //------------------------------------------------------------------------------
 nini_node_t* nini_node_create_null(const char *name)
@@ -88,6 +188,7 @@ nini_node_t* nini_node_create_null(const char *name)
      * @return Instance of the new node if succeed; or
      *         NULL if failed!
      */
+    return nini_node_create(NINI_NULL, name);
 }
 //------------------------------------------------------------------------------
 void nini_node_release(nini_node_t *self)
@@ -98,6 +199,27 @@ void nini_node_release(nini_node_t *self)
      *
      * @param self Object instance.
      */
+    if( !self ) return;
+
+    if( self->type == NINI_STRING && self->value.string )
+        free(self->value.string);
+
+    if( self->type == NINI_ROOT || self->type == NINI_SECTION )
+    {
+        nini_node_t *node = self->childs.first;
+        while( node )
+        {
+            nini_node_t *node_remove = node;
+            node = node->next;
+
+            nini_node_release(node_remove);
+        }
+    }
+
+    if( self->name )
+        free(self->name);
+
+    free(self);
 }
 //------------------------------------------------------------------------------
 const char* nini_node_get_name(const nini_node_t *self)
@@ -109,6 +231,7 @@ const char* nini_node_get_name(const nini_node_t *self)
      * @param self Object instance.
      * @return Name of this node.
      */
+    return self->name;
 }
 //------------------------------------------------------------------------------
 nini_type_t nini_node_get_type(const nini_node_t *self)
@@ -120,6 +243,7 @@ nini_type_t nini_node_get_type(const nini_node_t *self)
      * @param self Object instance.
      * @return Type of this node.
      */
+    return self->type;
 }
 //------------------------------------------------------------------------------
 bool nini_node_have_value(const nini_node_t *self)
@@ -131,6 +255,22 @@ bool nini_node_have_value(const nini_node_t *self)
      * @param self Object instance.
      * @return TRUE if node have value; and FALSE if not.
      */
+    switch( self->type )
+    {
+    case NINI_STRING:
+    case NINI_DECIMAL:
+    case NINI_HEXA:
+    case NINI_FLOAT:
+    case NINI_BOOL:
+        return true;
+
+    case NINI_ROOT:
+    case NINI_SECTION:
+    case NINI_NULL:
+        return false;
+    }
+
+    return false;
 }
 //------------------------------------------------------------------------------
 bool nini_node_have_child(const nini_node_t *self)
@@ -142,6 +282,22 @@ bool nini_node_have_child(const nini_node_t *self)
      * @param self Object instance.
      * @return TRUE if node have child; and FALSE if not.
      */
+    switch( self->type )
+    {
+    case NINI_ROOT:
+    case NINI_SECTION:
+        return self->childs.first;
+
+    case NINI_STRING:
+    case NINI_DECIMAL:
+    case NINI_HEXA:
+    case NINI_FLOAT:
+    case NINI_BOOL:
+    case NINI_NULL:
+        return false;
+    }
+
+    return false;
 }
 //------------------------------------------------------------------------------
 nini_node_t* nini_node_get_next_sibling(nini_node_t *self)
@@ -154,6 +310,7 @@ nini_node_t* nini_node_get_next_sibling(nini_node_t *self)
      * @return The next sibling node if it has; or
      *         NULL if there are no siblings after.
      */
+    return self->next;
 }
 //------------------------------------------------------------------------------
 nini_node_t* nini_node_get_prev_sibling(nini_node_t *self)
@@ -166,6 +323,7 @@ nini_node_t* nini_node_get_prev_sibling(nini_node_t *self)
      * @return The previous sibling node if it has; or
      *         NULL if there are no siblings in front.
      */
+    return self->prev;
 }
 //------------------------------------------------------------------------------
 const nini_node_t* nini_node_get_next_sibling_c(const nini_node_t *self)
@@ -178,6 +336,7 @@ const nini_node_t* nini_node_get_next_sibling_c(const nini_node_t *self)
      * @return The next sibling node if it has; or
      *         NULL if there are no siblings after.
      */
+    return self->next;
 }
 //------------------------------------------------------------------------------
 const nini_node_t* nini_node_get_prev_sibling_c(const nini_node_t *self)
@@ -190,6 +349,7 @@ const nini_node_t* nini_node_get_prev_sibling_c(const nini_node_t *self)
      * @return The previous sibling node if it has; or
      *         NULL if there are no siblings in front.
      */
+    return self->prev;
 }
 //------------------------------------------------------------------------------
 nini_node_t* nini_node_get_first_child(nini_node_t *self)
@@ -202,6 +362,7 @@ nini_node_t* nini_node_get_first_child(nini_node_t *self)
      * @return The first child if it has; or
      *         NULL if there are no children.
      */
+    return nini_node_have_child(self) ? self->childs.first : NULL;
 }
 //------------------------------------------------------------------------------
 nini_node_t* nini_node_get_last_child(nini_node_t *self)
@@ -214,6 +375,7 @@ nini_node_t* nini_node_get_last_child(nini_node_t *self)
      * @return The last child if it has; or
      *         NULL if there are no children.
      */
+    return nini_node_have_child(self) ? self->childs.last : NULL;
 }
 //------------------------------------------------------------------------------
 nini_node_t* nini_node_find_child(nini_node_t *self, const char *name)
@@ -227,6 +389,17 @@ nini_node_t* nini_node_find_child(nini_node_t *self, const char *name)
      * @return A child that match the name; or
                NULL if not found.
      */
+    if( !nini_node_have_child(self) || !name ) return NULL;
+
+    for(nini_node_t *node = self->childs.first;
+        node;
+        node = node->next)
+    {
+        if( 0 == strcmp(node->name, name) )
+            return node;
+    }
+
+    return NULL;
 }
 //------------------------------------------------------------------------------
 const nini_node_t* nini_node_get_first_child_c(const nini_node_t *self)
@@ -239,6 +412,7 @@ const nini_node_t* nini_node_get_first_child_c(const nini_node_t *self)
      * @return The first child if it has; or
      *         NULL if there are no children.
      */
+    return nini_node_have_child(self) ? self->childs.first : NULL;
 }
 //------------------------------------------------------------------------------
 const nini_node_t* nini_node_get_last_child_c(const nini_node_t *self)
@@ -251,6 +425,7 @@ const nini_node_t* nini_node_get_last_child_c(const nini_node_t *self)
      * @return The last child if it has; or
      *         NULL if there are no children.
      */
+    return nini_node_have_child(self) ? self->childs.last : NULL;
 }
 //------------------------------------------------------------------------------
 const nini_node_t* nini_node_find_child_c(const nini_node_t *self, const char *name)
@@ -264,6 +439,7 @@ const nini_node_t* nini_node_find_child_c(const nini_node_t *self, const char *n
      * @return A child that match the name; or
                NULL if not found.
      */
+    return nini_node_find_child((nini_node_t*)self, name);
 }
 //------------------------------------------------------------------------------
 const char* nini_node_get_string(const nini_node_t *self)
@@ -276,6 +452,7 @@ const char* nini_node_get_string(const nini_node_t *self)
      * @return The string value; or
                NULL if the node is not a string type of node.
      */
+    return ( self->type == NINI_STRING )?( self->value.string ):( NULL );
 }
 //------------------------------------------------------------------------------
 long nini_node_get_integer(const nini_node_t *self)
@@ -288,6 +465,8 @@ long nini_node_get_integer(const nini_node_t *self)
      * @return The integer value; or
                ZERO if the node is not an integer type (decimal or hexadecimal) of node.
      */
+    return ( self->type == NINI_DECIMAL || self->type == NINI_HEXA )?
+           ( self->value.integer ):( 0 );
 }
 //------------------------------------------------------------------------------
 double nini_node_get_float(const nini_node_t *self)
@@ -300,6 +479,7 @@ double nini_node_get_float(const nini_node_t *self)
      * @return The floating point value; or
      *         NAN if the node is not a floating type of node.
      */
+    return ( self->type == NINI_FLOAT )?( self->value.floating ):( nan("") );
 }
 //------------------------------------------------------------------------------
 bool nini_node_get_bool(const nini_node_t *self)
@@ -312,6 +492,7 @@ bool nini_node_get_bool(const nini_node_t *self)
      * @return The boolean value; or
      *         FALSE if the node is not a boolean type of node.
      */
+    return ( self->type == NINI_BOOL )?( self->value.boolean ):( false );
 }
 //------------------------------------------------------------------------------
 bool nini_node_link_child(nini_node_t *self, nini_node_t *node)
@@ -334,6 +515,22 @@ bool nini_node_link_child(nini_node_t *self, nini_node_t *node)
      *          and it will be released when its parent be destructed.
      *          So, do not release the child node duplicated if it is already linked to a node.
      */
+    if( self->type != NINI_ROOT && self->type != NINI_SECTION ) return false;
+
+    if( !node ) return false;
+    if( node->type == NINI_ROOT ) return false;  // Node is a virtual node.
+    if( node->parent ) return false;  // Node is already linked.
+
+    node->parent = self;
+
+    node->prev = self->childs.last;
+    if( self->childs.last ) self->childs.last->next = node;
+
+    self->childs.last = node;
+    if( !self->childs.first )
+        self->childs.first = node;
+
+    return true;
 }
 //------------------------------------------------------------------------------
 void nini_node_unlink(nini_node_t *self)
@@ -344,5 +541,22 @@ void nini_node_unlink(nini_node_t *self)
      *
      * @param self Object instance.
      */
+    if( !self->parent ) return;  // Not linked to any one.
+
+    nini_node_t *parent = self->parent;
+    nini_node_t *prev   = self->prev;
+    nini_node_t *next   = self->next;
+
+    if( prev )
+        prev->next = next;
+    else
+        parent->childs.first = next;
+
+    if( next )
+        next->prev = prev;
+    else
+        parent->childs.last = prev;
+
+    self->parent = NULL;
 }
 //------------------------------------------------------------------------------
