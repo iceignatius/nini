@@ -75,13 +75,13 @@ void value_types_encode_test(void **state)
     assert_non_null( node_null );
     assert_true( nini_node_link_child(sec_null, node_null) );
 
-    assert_true( nini_root_save_file(&root, "temp/value-types.ini", NULL) );
+    assert_true( nini_root_save_file(&root, "value-types.ini", NULL) );
 
     // Compare file with the target.
     nini_root_clear(&root);
-    assert_true( nini_root_load_file(&root, "temp/value-types.ini", NULL) );
-    ninidump(&root, '/', "temp/value-types.dump");
-    assert_int_equal( 0, system("diff temp/value-types.dump samples/value-types.dump") );
+    assert_true( nini_root_load_file(&root, "value-types.ini", NULL) );
+    ninidump(&root, '/', "value-types.dump");
+    assert_int_equal( 0, system("diff value-types.dump samples/value-types.dump") );
 
     nini_root_deinit(&root);
 }
@@ -144,13 +144,13 @@ void indents_encode_test(void **state)
     assert_non_null( base2 );
     assert_true( nini_root_link_child(&root, base2) );
 
-    assert_true( nini_root_save_file(&root, "temp/indents.ini", NULL) );
+    assert_true( nini_root_save_file(&root, "indents.ini", NULL) );
 
     // Compare file with the target.
     nini_root_clear(&root);
-    assert_true( nini_root_load_file(&root, "temp/indents.ini", NULL) );
-    ninidump(&root, '/', "temp/indents.dump");
-    assert_int_equal( 0, system("diff temp/indents.dump samples/indents.dump") );
+    assert_true( nini_root_load_file(&root, "indents.ini", NULL) );
+    ninidump(&root, '/', "indents.dump");
+    assert_int_equal( 0, system("diff indents.dump samples/indents.dump") );
 
     nini_root_deinit(&root);
 }

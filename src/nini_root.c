@@ -6,6 +6,52 @@
 #include "nini_parser.h"
 #include "nini_root.h"
 
+typedef struct buffer_stream_t
+{
+    uint8_t *buf;
+    size_t   rest_size;
+    size_t   write_size;
+} buffer_stream_t;
+
+//------------------------------------------------------------------------------
+static
+void buffer_stream_init(buffer_stream_t *stream, void *buf, size_t size)
+{
+    stream->buf        = buf;
+    stream->rest_size  = size;
+    stream->write_size = 0;
+}
+//------------------------------------------------------------------------------
+static
+size_t buffer_stream_get_write_size(const buffer_stream_t *stream)
+{
+    return stream->write_size;
+}
+//------------------------------------------------------------------------------
+static
+bool buffer_stream_push_data(buffer_stream_t *stream, const void *data, size_t size)
+{
+    if( stream->rest_size < size ) return false;
+
+    memcpy(stream->buf, data, size);
+    stream->buf        += size;
+    stream->rest_size  -= size;
+    stream->write_size += size;
+
+    return true;
+}
+//------------------------------------------------------------------------------
+static
+bool buffer_stream_push_str(buffer_stream_t *stream, const char *str)
+{
+    return buffer_stream_push_data(stream, str, strlen(str));
+}
+//------------------------------------------------------------------------------
+static
+bool buffer_stream_push_ch(buffer_stream_t *stream, char ch)
+{
+    return buffer_stream_push_data(stream, &ch, 1);
+}
 //------------------------------------------------------------------------------
 void nini_root_init(nini_root_t *self, const nini_format_t *format)
 {
@@ -250,6 +296,189 @@ bool nini_root_decode(nini_root_t *self, const void *data, size_t size, nini_err
     return res;
 }
 //------------------------------------------------------------------------------
+static
+void encode_char_with_escapes(char *dest, size_t bufsize, char ch)
+{
+    const char *predefined;
+    switch( ch )
+    {
+    case 0x07:
+        predefined = "\\a";
+        break;
+
+    case 0x08:
+        predefined = "\\b";
+        break;
+
+    case 0x0C:
+        predefined = "\\f";
+        break;
+
+    case 0x0A:
+        predefined = "\\n";
+        break;
+
+    case 0x0D:
+        predefined = "\\r";
+        break;
+
+    case 0x09:
+        predefined = "\\t";
+        break;
+
+    case 0x0B:
+        predefined = "\\v";
+        break;
+
+    case '\'':
+        predefined = "\\\'";
+        break;
+
+    case '\"':
+        predefined = "\\\"";
+        break;
+
+    case '\\':
+        predefined = "\\\\";
+        break;
+
+    default:
+        predefined = NULL;
+        break;
+    }
+
+    if( predefined )
+    {
+        strncpy(dest, predefined, bufsize);
+    }
+    else if( ch < 0x20 || 0x7F <= ch )
+    {
+        snprintf(dest, bufsize, "\\x%02X", (unsigned)(uint8_t)ch);
+    }
+    else
+    {
+        dest[0] = ch;
+        dest[1] = 0;
+    }
+}
+//------------------------------------------------------------------------------
+static
+int encode_quoted_string(char *buf, size_t bufsize, const char *src)
+{
+    buffer_stream_t stream;
+    buffer_stream_init(&stream, buf, bufsize);
+
+    if( !buffer_stream_push_ch(&stream, ' ') ) return -1;
+    if( !buffer_stream_push_ch(&stream, '\"') ) return -1;
+
+    for(; *src; ++src)
+    {
+        char encstr[4+1];
+        encode_char_with_escapes(encstr, sizeof(encstr), *src);
+
+        if( !buffer_stream_push_str(&stream, encstr) )
+            return -1;
+    }
+
+    if( !buffer_stream_push_ch(&stream, '\"') ) return -1;
+    if( !buffer_stream_push_ch(&stream, 0) ) return -1;
+
+    return buffer_stream_get_write_size(&stream);
+}
+//------------------------------------------------------------------------------
+static
+bool encode_value(char *buf, size_t bufsize, const nini_node_t *node)
+{
+    int fillsize;
+    switch( nini_node_get_type(node) )
+    {
+    case NINI_STRING:
+        fillsize = encode_quoted_string(buf, bufsize, nini_node_get_string(node));
+        break;
+
+    case NINI_DECIMAL:
+        fillsize = snprintf(buf, bufsize, " %ld", nini_node_get_integer(node));
+        break;
+
+    case NINI_HEXA:
+        fillsize = snprintf(buf, bufsize, " %lX", nini_node_get_integer(node));
+        break;
+
+    case NINI_FLOAT:
+        fillsize = snprintf(buf, bufsize, " %lf", nini_node_get_float(node));
+        break;
+
+    case NINI_BOOL:
+        fillsize = snprintf(buf, bufsize, " %s", nini_node_get_bool(node) ? "true" : "false");
+        break;
+
+    default:
+        buf[0] = 0;
+        fillsize = 1;
+        break;
+    }
+
+    return 0 < fillsize && fillsize <= bufsize;
+}
+//------------------------------------------------------------------------------
+static
+size_t encode_node(const nini_format_t *format,
+                   void                *stream,
+                   nini_on_write_t      on_write,
+                   int                  level,
+                   const nini_node_t   *node)
+{
+    // Generate indents.
+    char indents[NINI_MAX_LINE_CHARS+1] = {0};
+    for(int i = 0; i < format->indent * level; ++i)
+        indents[i] = ' ';
+
+    // Generate name.
+    char name[NINI_MAX_LINE_CHARS+1];
+    if( nini_node_get_type(node) == NINI_SECTION )
+    {
+        if( !format->sec_head ) return 0;
+
+        char stx[2] = { format->sec_head };
+        char etx[2] = { format->sec_tail };
+        snprintf(name, sizeof(name), "%s%s%s", stx, nini_node_get_name(node), etx);
+    }
+    else
+    {
+        assert( format->keymark );
+        snprintf(name, sizeof(name), "%s %c", nini_node_get_name(node), format->keymark);
+    }
+
+    // Generate value.
+    char value[NINI_MAX_LINE_CHARS+1];
+    if( !encode_value(value, sizeof(value), node) ) return 0;
+
+    // Generate line.
+
+    static const char ASCII_LF = 0x0A;
+
+    char line[NINI_MAX_LINE_CHARS+1];
+    int fillsize = snprintf(line, sizeof(line), "%s%s%s%c", indents, name, value, ASCII_LF);
+    if( fillsize < 0 || sizeof(line) < fillsize ) return 0;
+
+    // Write stream.
+    if( !on_write(stream, line, fillsize) ) return 0;
+
+    // Process children.
+    size_t total_size = fillsize;
+    for(const nini_node_t *child = nini_node_get_first_child_c(node);
+        child;
+        child = nini_node_get_next_sibling_c(child))
+    {
+        size_t fillsize = encode_node(format, stream, on_write, level+1, child);
+        if( !fillsize ) return 0;
+
+        total_size += fillsize;
+    }
+
+    return total_size;
+}
+//------------------------------------------------------------------------------
 size_t nini_root_encode_to_stream(nini_root_t     *self,
                                   void            *stream,
                                   nini_on_write_t  on_write,
@@ -267,6 +496,19 @@ size_t nini_root_encode_to_stream(nini_root_t     *self,
      *                 This parameter can be NULL to discard the error report.
      * @return Size of data be filled to the stream if succeed; and ZERO if failed.
      */
+    size_t total_size = 0;
+
+    for(const nini_node_t *node = nini_root_get_first_child_c(self);
+        node;
+        node = nini_node_get_next_sibling_c(node))
+    {
+        size_t fillsize = encode_node(&self->format, stream, on_write, 0, node);
+        if( !fillsize ) return 0;
+
+        total_size += fillsize;
+    }
+
+    return total_size;
 }
 //------------------------------------------------------------------------------
 size_t nini_root_encode_to_buffer(nini_root_t   *self,
@@ -286,6 +528,13 @@ size_t nini_root_encode_to_buffer(nini_root_t   *self,
      *               This parameter can be NULL to discard the error report.
      * @return Size of data be filled to the stream if succeed; and ZERO if failed.
      */
+    buffer_stream_t stream;
+    buffer_stream_init(&stream, buf, size);
+
+    return nini_root_encode_to_stream(self,
+                                      &stream,
+                                      (bool(*)(void*,const char*,size_t)) buffer_stream_push_data,
+                                      errmsg);
 }
 //------------------------------------------------------------------------------
 bool nini_root_load_file(nini_root_t *self, const char *filename, nini_errmsg_t *errmsg)
@@ -337,6 +586,12 @@ bool nini_root_load_file(nini_root_t *self, const char *filename, nini_errmsg_t 
     return res;
 }
 //------------------------------------------------------------------------------
+static
+bool file_on_write(FILE *stream, const char *line, size_t len)
+{
+    return len == fwrite(line, 1, len, stream);
+}
+//------------------------------------------------------------------------------
 bool nini_root_save_file(nini_root_t *self, const char *filename, nini_errmsg_t *errmsg)
 {
     /**
@@ -350,5 +605,16 @@ bool nini_root_save_file(nini_root_t *self, const char *filename, nini_errmsg_t 
      *                 This parameter can be NULL to discard the error report.
      * @return TRUE if succeed; and FALSE if not.
      */
+    FILE *file = fopen(filename, "wb");
+    if( !file ) return false;
+
+    size_t recsize = nini_root_encode_to_stream(self,
+                                                file,
+                                                (bool(*)(void*,const char*,size_t)) file_on_write,
+                                                errmsg);
+
+    fclose(file);
+
+    return recsize;
 }
 //------------------------------------------------------------------------------

@@ -23,8 +23,9 @@ extern "C" {
  * @param line   The data to be write to the stream,
  *               and that will be one line of the NINI format characters.
  * @param len    Size of the data.
+ * @return TRUE if success; and FALSE if not.
  */
-typedef void(*nini_on_write_t)(void *stream, const char *line, size_t len);
+typedef bool(*nini_on_write_t)(void *stream, const char *line, size_t len);
 
 /**
  * @class nini_root_t
