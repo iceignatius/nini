@@ -31,7 +31,7 @@ void value_types_encode_test(void **state)
     assert_non_null( node_special );
     assert_true( nini_node_link_child(sec_string, node_special) );
 
-    nini_node_t *node_escapes = nini_node_create_string("escapes", "string with escape characters: \\\'\":=#;\n\r\t\x41\0");
+    nini_node_t *node_escapes = nini_node_create_string("escapes", "string with escape characters: \\\'\":=#;\n\r\t\x41");
     assert_non_null( node_escapes );
     assert_true( nini_node_link_child(sec_string, node_escapes) );
 
