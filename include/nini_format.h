@@ -20,6 +20,13 @@ extern "C" {
 #define NINI_MAX_LINE_CHARS 1024
 
 /**
+ * @brief   Maximum nested level.
+ * @details The maximum indent level the parser can parse for nested items.
+ *          It can be configured to fit user need at compile time.
+ */
+#define NINI_MAX_PARSE_LEVEL 1024
+
+/**
  * @brief   INI format definition.
  * @details Dedine what characters will be used for each marks and symbols,
  *          so that it can be used for most of INI derived formats.
