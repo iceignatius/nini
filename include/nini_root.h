@@ -8,7 +8,6 @@
 #ifndef _NINI_ROOT_H_
 #define _NINI_ROOT_H_
 
-#include <stddef.h>
 #include "nini_errmsg.h"
 #include "nini_node.h"
 
@@ -36,6 +35,8 @@ typedef struct nini_root_t
     // WARNING: All variables are private!
 
     nini_node_t super;
+
+    nini_format_t format;
 
 } nini_root_t;
 

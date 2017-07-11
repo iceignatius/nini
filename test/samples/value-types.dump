@@ -1,0 +1,16 @@
+string	section	""
+string/spaces	string	"string with spaces"
+string/quotes	string	"string with quotes"
+string/special	string	"string with special characters: ;#"
+string/escapes	string	"string with escape characters: \'":=#;
+	A"
+integer	section	""
+integer/decimal	decimal	"13579"
+integer/hexadecimal	hexa	"1A7B"
+floating	section	""
+floating/float	float	"3.141593"
+boolean	section	""
+boolean/true	bool	"true"
+boolean/false	bool	"false"
+null	section	""
+null/null	null	""
