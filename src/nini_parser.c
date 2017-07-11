@@ -100,7 +100,7 @@ void* on_item_default(void                *userarg,
                       const char          *name,
                       nini_parser_value_t *value)
 {
-    // Nothing to do.
+    return (void*) 1;
 }
 //------------------------------------------------------------------------------
 void nini_parser_init(nini_parser_t         *self,
