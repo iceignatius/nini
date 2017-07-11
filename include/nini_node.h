@@ -9,25 +9,11 @@
 #define _NINI_NODE_H_
 
 #include <stdbool.h>
+#include "nini_type.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/**
- * @brief Node types.
- */
-typedef enum nini_type_t
-{
-    NINI_ROOT,      ///< Node is the root section (virtual).
-    NINI_SECTION,   ///< Node is a section.
-    NINI_STRING,    ///< Node is a key with string value.
-    NINI_DECIMAL,   ///< Node is a key with integer value in decimal format.
-    NINI_HEXA,      ///< Node is a key with integer value in hexadecimal format.
-    NINI_FLOAT,     ///< Node is a key with floating point value.
-    NINI_BOOL,      ///< Node is a key with boolean value.
-    NINI_NULL,      ///< Node is a key without value.
-} nini_type_t;
 
 /**
  * @class nini_node_t
@@ -71,6 +57,7 @@ nini_node_t* nini_node_create_hexa   (const char *name, long value);
 nini_node_t* nini_node_create_float  (const char *name, double value);
 nini_node_t* nini_node_create_bool   (const char *name, bool value);
 nini_node_t* nini_node_create_null   (const char *name);
+
 void nini_node_release(nini_node_t *self);
 
 const char*  nini_node_get_name(const nini_node_t *self);
