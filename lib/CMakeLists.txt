@@ -10,6 +10,8 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
 endif()
 
+set(srcfiles ${srcfiles} ${CMAKE_SOURCE_DIR}/src/nini_errmsg.c)
+set(srcfiles ${srcfiles} ${CMAKE_SOURCE_DIR}/src/nini_parser.c)
 set(srcfiles ${srcfiles} ${CMAKE_SOURCE_DIR}/src/nini_node.c)
 set(srcfiles ${srcfiles} ${CMAKE_SOURCE_DIR}/src/nini_root.c)
 set(srcfiles ${srcfiles} ${CMAKE_SOURCE_DIR}/src/nini_helper.c)
