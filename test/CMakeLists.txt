@@ -28,3 +28,6 @@ set(deplibs ${deplibs} cmocka)
 
 add_executable(nini_test ${srcfiles})
 target_link_libraries(nini_test ${deplibs})
+
+# Copy test samples.
+file(COPY ${CMAKE_CURRENT_SOURCE_FIR}samples DESTINATION ${CMAKE_BINARY_DIR})
