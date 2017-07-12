@@ -6,6 +6,7 @@ The Nested INI is derived from the Microsoft INI format and support nested secti
 ## Example
 
     #include <assert.h>
+    #include <stdio.h>
     #include <nini/nini.h>
     /*
      * Assume that there is a file named "sample.ini", and its contents are:
@@ -29,7 +30,14 @@ The Nested INI is derived from the Microsoft INI format and support nested secti
 
         assert( nini_root_load_file(&nini, "sample.ini", NULL);
 
+        printf("Description: %s\n", nini_read_string(&nini, "record/desc", '/', NULL));
+
         nini_root_deinit(&nini);
 
         return 0;
     }
+
+    /*
+     * The output will be:
+     * Description: The test record.
+     */
