@@ -222,30 +222,6 @@ void nini_node_release(nini_node_t *self)
     free(self);
 }
 //------------------------------------------------------------------------------
-const char* nini_node_get_name(const nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get name of node.
-     *
-     * @param self Object instance.
-     * @return Name of this node.
-     */
-    return self->name;
-}
-//------------------------------------------------------------------------------
-nini_type_t nini_node_get_type(const nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get type of node.
-     *
-     * @param self Object instance.
-     * @return Type of this node.
-     */
-    return self->type;
-}
-//------------------------------------------------------------------------------
 bool nini_node_have_value(const nini_node_t *self)
 {
     /**
@@ -300,84 +276,6 @@ bool nini_node_have_child(const nini_node_t *self)
     return false;
 }
 //------------------------------------------------------------------------------
-nini_node_t* nini_node_get_next_sibling(nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get the next sibling node.
-     *
-     * @param self Object instance.
-     * @return The next sibling node if it has; or
-     *         NULL if there are no siblings after.
-     */
-    return self->next;
-}
-//------------------------------------------------------------------------------
-nini_node_t* nini_node_get_prev_sibling(nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get the previous sibling node.
-     *
-     * @param self Object instance.
-     * @return The previous sibling node if it has; or
-     *         NULL if there are no siblings in front.
-     */
-    return self->prev;
-}
-//------------------------------------------------------------------------------
-const nini_node_t* nini_node_get_next_sibling_c(const nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get the next sibling node.
-     *
-     * @param self Object instance.
-     * @return The next sibling node if it has; or
-     *         NULL if there are no siblings after.
-     */
-    return self->next;
-}
-//------------------------------------------------------------------------------
-const nini_node_t* nini_node_get_prev_sibling_c(const nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get the previous sibling node.
-     *
-     * @param self Object instance.
-     * @return The previous sibling node if it has; or
-     *         NULL if there are no siblings in front.
-     */
-    return self->prev;
-}
-//------------------------------------------------------------------------------
-nini_node_t* nini_node_get_first_child(nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get the first child.
-     *
-     * @param self Object instance.
-     * @return The first child if it has; or
-     *         NULL if there are no children.
-     */
-    return nini_node_have_child(self) ? self->childs.first : NULL;
-}
-//------------------------------------------------------------------------------
-nini_node_t* nini_node_get_last_child(nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get the last child.
-     *
-     * @param self Object instance.
-     * @return The last child if it has; or
-     *         NULL if there are no children.
-     */
-    return nini_node_have_child(self) ? self->childs.last : NULL;
-}
-//------------------------------------------------------------------------------
 nini_node_t* nini_node_find_child(nini_node_t *self, const char *name)
 {
     /**
@@ -402,73 +300,6 @@ nini_node_t* nini_node_find_child(nini_node_t *self, const char *name)
     return NULL;
 }
 //------------------------------------------------------------------------------
-const nini_node_t* nini_node_get_first_child_c(const nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get the first child.
-     *
-     * @param self Object instance.
-     * @return The first child if it has; or
-     *         NULL if there are no children.
-     */
-    return nini_node_have_child(self) ? self->childs.first : NULL;
-}
-//------------------------------------------------------------------------------
-const nini_node_t* nini_node_get_last_child_c(const nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get the last child.
-     *
-     * @param self Object instance.
-     * @return The last child if it has; or
-     *         NULL if there are no children.
-     */
-    return nini_node_have_child(self) ? self->childs.last : NULL;
-}
-//------------------------------------------------------------------------------
-const nini_node_t* nini_node_find_child_c(const nini_node_t *self, const char *name)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Find child by name.
-     *
-     * @param self Object instance.
-     * @param name Name of the child.
-     * @return A child that match the name; or
-               NULL if not found.
-     */
-    return nini_node_find_child((nini_node_t*)self, name);
-}
-//------------------------------------------------------------------------------
-const char* nini_node_get_string(const nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get the string value.
-     *
-     * @param self Object instance.
-     * @return The string value; or
-               NULL if the node is not a string type of node.
-     */
-    return ( self->type == NINI_STRING )?( self->value.string ):( NULL );
-}
-//------------------------------------------------------------------------------
-long nini_node_get_integer(const nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get the integer value.
-     *
-     * @param self Object instance.
-     * @return The integer value; or
-               ZERO if the node is not an integer type (decimal or hexadecimal) of node.
-     */
-    return ( self->type == NINI_DECIMAL || self->type == NINI_HEXA )?
-           ( self->value.integer ):( 0 );
-}
-//------------------------------------------------------------------------------
 double nini_node_get_float(const nini_node_t *self)
 {
     /**
@@ -480,19 +311,6 @@ double nini_node_get_float(const nini_node_t *self)
      *         NAN if the node is not a floating type of node.
      */
     return ( self->type == NINI_FLOAT )?( self->value.floating ):( nan("") );
-}
-//------------------------------------------------------------------------------
-bool nini_node_get_bool(const nini_node_t *self)
-{
-    /**
-     * @memberof nini_node_t
-     * @brief Get the boolean value.
-     *
-     * @param self Object instance.
-     * @return The boolean value; or
-     *         FALSE if the node is not a boolean type of node.
-     */
-    return ( self->type == NINI_BOOL )?( self->value.boolean ):( false );
 }
 //------------------------------------------------------------------------------
 bool nini_node_link_child(nini_node_t *self, nini_node_t *node)
