@@ -1,5 +1,109 @@
+#include <string.h>
 #include "nini_helper.h"
 
+//------------------------------------------------------------------------------
+static
+char* extract_last_name(char **path, char deli)
+{
+    char *pos = *path ? strrchr(*path, deli) : NULL;
+    if( pos )
+    {
+        *pos = 0;
+        return pos + 1;
+    }
+    else
+    {
+        char *name = *path;
+        *path = NULL;
+        return name;
+    }
+}
+//------------------------------------------------------------------------------
+static
+char* extract_first_name(char **path, char deli)
+{
+    char *name = *path;
+
+    char *pos = *path ? strchr(*path, deli) : NULL;
+    if( pos )
+    {
+        *pos  = 0;
+        *path = pos + 1;
+    }
+    else
+    {
+        *path = NULL;
+    }
+
+    return name;
+}
+//------------------------------------------------------------------------------
+static
+const nini_node_t* find_node_by_path(const nini_root_t *root, char *path, char deli)
+{
+    const nini_node_t *parent = &root->super;
+    if( !path || !strlen(path) ) return parent;
+
+    char *name;
+    while(( name = extract_first_name(&path, deli) ))
+    {
+        const nini_node_t *child = nini_node_find_child_c(parent, name);
+        if( !child ) return NULL;
+
+        parent = child;
+    }
+
+    return parent;
+}
+//------------------------------------------------------------------------------
+static
+nini_node_t* make_and_link_section_by_name(nini_node_t *parent, const char *name)
+{
+    nini_node_t *child = nini_node_find_child(parent, name);
+    if( child ) return child;
+
+    child = nini_node_create_section(name);
+    if( !child ) return NULL;
+
+    if( !nini_node_link_child(parent, child) )
+    {
+        nini_node_release(child);
+        return NULL;
+    }
+
+    return child;
+}
+//------------------------------------------------------------------------------
+static
+nini_node_t* make_node_by_path(nini_root_t *root, char *path, char deli)
+{
+    nini_node_t *parent = &root->super;
+    if( !path || !strlen(path) ) return parent;
+
+    char *name;
+    while(( name = extract_first_name(&path, deli) ))
+    {
+        nini_node_t *child = make_and_link_section_by_name(parent, name);
+        if( !child ) return NULL;
+
+        parent = child;
+    }
+
+    return parent;
+}
+//------------------------------------------------------------------------------
+static
+bool replace_child(nini_node_t *parent, nini_node_t *new_child)
+{
+    nini_node_t *old_child = nini_node_find_child(parent, nini_node_get_name(new_child));
+    if( old_child )
+    {
+        nini_node_unlink(old_child);
+        nini_node_release(old_child);
+    }
+
+    return nini_node_link_child(parent, new_child);
+}
 //------------------------------------------------------------------------------
 bool nini_write_string(nini_root_t *root, const char *path, char deli, const char *value)
 {
@@ -14,8 +118,21 @@ bool nini_write_string(nini_root_t *root, const char *path, char deli, const cha
      *
      * @remarks
      * * The path will be created if it does not existed.
-     * * The key will be overwrited if it is already existed.
+     * * The key will be overwrite if it is already existed.
      */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *parent_path = buf;
+
+    char *name = extract_last_name(&parent_path, deli);
+
+    nini_node_t *parent = make_node_by_path(root, parent_path, deli);
+    if( !parent ) return false;
+
+    nini_node_t *node = nini_node_create_string(name, value);
+    if( !node ) return false;
+
+    return replace_child(parent, node);
 }
 //------------------------------------------------------------------------------
 bool nini_write_decimal(nini_root_t *root, const char *path, char deli, long value)
@@ -31,8 +148,21 @@ bool nini_write_decimal(nini_root_t *root, const char *path, char deli, long val
      *
      * @remarks
      * * The path will be created if it does not existed.
-     * * The key will be overwrited if it is already existed.
+     * * The key will be overwrite if it is already existed.
      */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *parent_path = buf;
+
+    char *name = extract_last_name(&parent_path, deli);
+
+    nini_node_t *parent = make_node_by_path(root, parent_path, deli);
+    if( !parent ) return false;
+
+    nini_node_t *node = nini_node_create_decimal(name, value);
+    if( !node ) return false;
+
+    return replace_child(parent, node);
 }
 //------------------------------------------------------------------------------
 bool nini_write_hexa(nini_root_t *root, const char *path, char deli, long value)
@@ -48,8 +178,21 @@ bool nini_write_hexa(nini_root_t *root, const char *path, char deli, long value)
      *
      * @remarks
      * * The path will be created if it does not existed.
-     * * The key will be overwrited if it is already existed.
+     * * The key will be overwrite if it is already existed.
      */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *parent_path = buf;
+
+    char *name = extract_last_name(&parent_path, deli);
+
+    nini_node_t *parent = make_node_by_path(root, parent_path, deli);
+    if( !parent ) return false;
+
+    nini_node_t *node = nini_node_create_hexa(name, value);
+    if( !node ) return false;
+
+    return replace_child(parent, node);
 }
 //------------------------------------------------------------------------------
 bool nini_write_float(nini_root_t *root, const char *path, char deli, double value)
@@ -65,8 +208,21 @@ bool nini_write_float(nini_root_t *root, const char *path, char deli, double val
      *
      * @remarks
      * * The path will be created if it does not existed.
-     * * The key will be overwrited if it is already existed.
+     * * The key will be overwrite if it is already existed.
      */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *parent_path = buf;
+
+    char *name = extract_last_name(&parent_path, deli);
+
+    nini_node_t *parent = make_node_by_path(root, parent_path, deli);
+    if( !parent ) return false;
+
+    nini_node_t *node = nini_node_create_float(name, value);
+    if( !node ) return false;
+
+    return replace_child(parent, node);
 }
 //------------------------------------------------------------------------------
 bool nini_write_bool(nini_root_t *root, const char *path, char deli, bool value)
@@ -82,8 +238,21 @@ bool nini_write_bool(nini_root_t *root, const char *path, char deli, bool value)
      *
      * @remarks
      * * The path will be created if it does not existed.
-     * * The key will be overwrited if it is already existed.
+     * * The key will be overwrite if it is already existed.
      */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *parent_path = buf;
+
+    char *name = extract_last_name(&parent_path, deli);
+
+    nini_node_t *parent = make_node_by_path(root, parent_path, deli);
+    if( !parent ) return false;
+
+    nini_node_t *node = nini_node_create_bool(name, value);
+    if( !node ) return false;
+
+    return replace_child(parent, node);
 }
 //------------------------------------------------------------------------------
 bool nini_write_null(nini_root_t *root, const char *path, char deli)
@@ -98,8 +267,21 @@ bool nini_write_null(nini_root_t *root, const char *path, char deli)
      *
      * @remarks
      * * The path will be created if it does not existed.
-     * * The key will be overwrited if it is already existed.
+     * * The key will be overwrite if it is already existed.
      */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *parent_path = buf;
+
+    char *name = extract_last_name(&parent_path, deli);
+
+    nini_node_t *parent = make_node_by_path(root, parent_path, deli);
+    if( !parent ) return false;
+
+    nini_node_t *node = nini_node_create_null(name);
+    if( !node ) return false;
+
+    return replace_child(parent, node);
 }
 //------------------------------------------------------------------------------
 const char* nini_read_string(const nini_root_t *root, const char *path, char deli, const char *failval)
@@ -114,6 +296,14 @@ const char* nini_read_string(const nini_root_t *root, const char *path, char del
      * @return The value if succeed; or
      *         @a failval if the key does not existed or the key type does not match.
      */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *node_path = buf;
+
+    const nini_node_t *node = find_node_by_path(root, node_path, deli);
+    if( !node ) return failval;
+
+    return nini_node_get_type(node) == NINI_STRING ? nini_node_get_string(node) : failval;
 }
 //------------------------------------------------------------------------------
 long nini_read_integer(const nini_root_t *root, const char *path, char deli, long failval)
@@ -128,6 +318,15 @@ long nini_read_integer(const nini_root_t *root, const char *path, char deli, lon
      * @return The value if succeed; or
      *         @a failval if the key does not existed or the key type does not match.
      */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *node_path = buf;
+
+    const nini_node_t *node = find_node_by_path(root, node_path, deli);
+    if( !node ) return failval;
+
+    return nini_node_get_type(node) == NINI_DECIMAL || nini_node_get_type(node) == NINI_HEXA ?
+           nini_node_get_integer(node) : failval;
 }
 //------------------------------------------------------------------------------
 double nini_read_float(const nini_root_t *root, const char *path, char deli, double failval)
@@ -142,6 +341,14 @@ double nini_read_float(const nini_root_t *root, const char *path, char deli, dou
      * @return The value if succeed; or
      *         @a failval if the key does not existed or the key type does not match.
      */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *node_path = buf;
+
+    const nini_node_t *node = find_node_by_path(root, node_path, deli);
+    if( !node ) return failval;
+
+    return nini_node_get_type(node) == NINI_FLOAT ? nini_node_get_float(node) : failval;
 }
 //------------------------------------------------------------------------------
 bool nini_read_bool(const nini_root_t *root, const char *path, char deli, bool failval)
@@ -156,5 +363,13 @@ bool nini_read_bool(const nini_root_t *root, const char *path, char deli, bool f
      * @return The value if succeed; or
      *         @a failval if the key does not existed or the key type does not match.
      */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *node_path = buf;
+
+    const nini_node_t *node = find_node_by_path(root, node_path, deli);
+    if( !node ) return failval;
+
+    return nini_node_get_type(node) == NINI_BOOL ? nini_node_get_bool(node) : failval;
 }
 //------------------------------------------------------------------------------
