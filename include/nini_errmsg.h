@@ -41,4 +41,14 @@ void nini_errmsg_write(nini_errmsg_t *errmsg,
 }  // extern "C"
 #endif
 
+#ifdef __cplusplus
+
+namespace nini
+{
+    /// C++ wrapper of nini_errmsg_t.
+    typedef nini_errmsg_t TErrMsg;
+}
+
+#endif
+
 #endif
