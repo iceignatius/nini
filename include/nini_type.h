@@ -31,4 +31,14 @@ typedef enum nini_type_t
 }  // extern "C"
 #endif
 
+#ifdef __cplusplus
+
+namespace nini
+{
+    /// C++ wrapper of nini_type_t.
+    typedef nini_type_t TType;
+}
+
+#endif
+
 #endif

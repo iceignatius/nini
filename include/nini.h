@@ -8,6 +8,11 @@
 #ifndef _NINI_H_
 #define _NINI_H_
 
+#ifdef __cplusplus
+/// NINI library.
+namespace nini {}
+#endif
+
 #include "nini_root.h"
 #include "nini_helper.h"
 
