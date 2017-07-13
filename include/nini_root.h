@@ -158,18 +158,18 @@ bool nini_root_link_child(nini_root_t *self, nini_node_t *node)
 
 bool nini_root_decode(nini_root_t *self, const void *data, size_t size, nini_errmsg_t *errmsg);
 
-size_t nini_root_encode_to_stream(nini_root_t     *self,
-                                  void            *stream,
-                                  nini_on_write_t  on_write,
-                                  nini_errmsg_t   *errmsg);
+size_t nini_root_encode_to_stream(const nini_root_t *self,
+                                  void              *stream,
+                                  nini_on_write_t    on_write,
+                                  nini_errmsg_t     *errmsg);
 
-size_t nini_root_encode_to_buffer(nini_root_t   *self,
-                                  void          *buf,
-                                  size_t         size,
-                                  nini_errmsg_t *errmsg);
+size_t nini_root_encode_to_buffer(const nini_root_t *self,
+                                  void              *buf,
+                                  size_t             size,
+                                  nini_errmsg_t     *errmsg);
 
 bool nini_root_load_file(nini_root_t *self, const char *filename, nini_errmsg_t *errmsg);
-bool nini_root_save_file(nini_root_t *self, const char *filename, nini_errmsg_t *errmsg);
+bool nini_root_save_file(const nini_root_t *self, const char *filename, nini_errmsg_t *errmsg);
 
 #ifdef __cplusplus
 }  // extern "C"
