@@ -189,6 +189,10 @@ public:
     /// Destructor.
     ~TRoot() { nini_root_deinit(this); }
 
+private:
+    TRoot(const TRoot &src);            // Not allowed to use!
+    TRoot& operator=(const TRoot &src); // Not allowed to use!
+
 public:
     /// The same as nini_root_clear.
     void Clear() { nini_root_clear(this); }

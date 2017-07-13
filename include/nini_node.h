@@ -286,7 +286,11 @@ namespace nini
 class TNode : protected nini_node_t
 {
 protected:
-    ~TNode() {}
+    ~TNode() {} // Object instance can be created on heap only!
+
+private:
+    TNode(const TNode &src);            // Not allowed to use!
+    TNode& operator=(const TNode &src); // Not allowed to use!
 
 public:
     /// The same as nini_node_create_section.
