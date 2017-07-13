@@ -49,6 +49,43 @@ typedef struct nini_format_t
                         ///< It is recommended to set it to 4 for general purpose.
 } nini_format_t;
 
+/**
+ * @name Pre-defined formats
+ * @{
+ */
+
+/**
+ * @brief Traditional Microsoft INI format.
+ */
+#define NINI_FORMAT_MS_INI (&nini_format_ms_ini)
+
+static const nini_format_t nini_format_ms_ini =
+{
+    .sec_head = '[',
+    .sec_tail = ']',
+    .keymark  = '=',
+    .comment  = ';',
+    .indent   = 0,
+};
+
+/**
+ * @brief INI format with nested support.
+ */
+#define NINI_FORMAT_NESTED_INI (&nini_format_nested_ini)
+
+static const nini_format_t nini_format_nested_ini =
+{
+    .sec_head = '[',
+    .sec_tail = ']',
+    .keymark  = '=',
+    .comment  = ';',
+    .indent   = 4,
+};
+
+/**
+ * @}
+ */
+
 #ifdef __cplusplus
 }  // extern "C"
 #endif
