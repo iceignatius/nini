@@ -175,4 +175,64 @@ bool nini_root_save_file(const nini_root_t *self, const char *filename, nini_err
 }  // extern "C"
 #endif
 
+#ifdef __cplusplus
+
+namespace nini
+{
+
+/// C++ wrapper of nini_root_t.
+class TRoot : protected nini_root_t
+{
+public:
+    /// Constructor.
+    TRoot(const TFormat *format) { nini_root_init(this, format); }
+    /// Destructor.
+    ~TRoot() { nini_root_deinit(this); }
+
+public:
+    /// The same as nini_root_clear.
+    void Clear() { nini_root_clear(this); }
+
+    /// The same as nini_root_get_first_child.
+    TNode* GetFirstChild() { return (TNode*) nini_root_get_first_child(this); }
+    /// The same as nini_root_get_last_child.
+    TNode* GetLastChild() { return (TNode*) nini_root_get_last_child(this); }
+    /// The same as nini_root_find_child.
+    TNode* FindChild(const std::string &name) { return (TNode*) nini_root_find_child(this, name.c_str()); }
+
+    /// The same as nini_root_get_first_child_c.
+    const TNode* GetFirstChild() const { return (const TNode*) nini_root_get_first_child_c(this); }
+    /// The same as nini_root_get_last_child_c.
+    const TNode* GetLastChild() const { return (const TNode*) nini_root_get_last_child_c(this); }
+    /// The same as nini_root_find_child_c.
+    const TNode* FindChild(const std::string &name) const { return (const TNode*) nini_root_find_child_c(this, name.c_str()); }
+
+    /// The same as nini_root_link_child.
+    bool LinkChild(TNode *node) { return nini_root_link_child(this, (nini_node_t*)node); }
+
+    /// The same as nini_root_decode.
+    bool Decode(const void *data, size_t size, TErrMsg *errmsg=nullptr)
+    { return nini_root_decode(this, data, size, errmsg); }
+
+    /// This same as nini_root_encode_to_stream.
+    size_t EncodeToStream(void *stream, nini_on_write_t on_write, TErrMsg *errmsg=nullptr)
+    { return nini_root_encode_to_stream(this, stream, on_write, errmsg); }
+
+    /// This same as nini_root_encode_to_buffer.
+    size_t EncodeToBuffer(void *buf, size_t size, TErrMsg *errmsg=nullptr)
+    { return nini_root_encode_to_buffer(this, buf, size, errmsg); }
+
+    /// The same as nini_root_load_file.
+    bool LoadFile(const std::string &filename, TErrMsg *errmsg=nullptr)
+    { return nini_root_load_file(this, filename.c_str(), errmsg); }
+
+    /// The same as nini_root_save_file.
+    bool SaveFile(const std::string &filename, TErrMsg *errmsg=nullptr) const
+    { return nini_root_save_file(this, filename.c_str(), errmsg); }
+};
+
+}
+
+#endif
+
 #endif
