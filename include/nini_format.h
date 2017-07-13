@@ -49,6 +49,20 @@ typedef struct nini_format_t
                         ///< It is recommended to set it to 4 for general purpose.
 } nini_format_t;
 
+#ifdef __cplusplus
+}  // extern "C"
+#endif
+
+#ifdef __cplusplus
+
+namespace nini
+{
+    /// C++ wrapper of nini_format_t.
+    typedef nini_format_t TFormat;
+}
+
+#endif
+
 /**
  * @name Pre-defined formats
  * @{
@@ -85,9 +99,5 @@ static const nini_format_t nini_format_nested_ini =
 /**
  * @}
  */
-
-#ifdef __cplusplus
-}  // extern "C"
-#endif
 
 #endif
