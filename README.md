@@ -5,6 +5,8 @@ The Nested INI is derived from the Microsoft INI format and support nested secti
 
 ## Example
 
+### Example for C
+
     #include <assert.h>
     #include <stdio.h>
     #include <nini/nini.h>
@@ -56,3 +58,32 @@ The Nested INI is derived from the Microsoft INI format and support nested secti
      * Encoding: pcm
      * Mode: stereo
      */
+
+### Example for C++
+
+    /*
+     * Above example can be more simple if you are using C++:
+     * /
+    #include <assert.h>
+    #include <iostream>
+    #include <nini/nini.h>
+
+    using namespace std;
+
+    int main()
+    {
+        nini::TNini ini(NINI_FORMAT_NESTED_INI, '/');
+
+        assert( ini.LoadFile("sample.ini") );
+
+        cout << "Description: " << ini.ReadString ("record/desc") << endl;
+        cout << "Duration: "    << ini.ReadFloat  ("record/duration") << endl;
+        cout << "Width: "       << ini.ReadInteger("record/video/width") << endl;
+        cout << "Height: "      << ini.ReadInteger("record/video/height") << endl;
+        cout << "Frame rate: "  << ini.ReadInteger("record/video/framerate") << endl;
+        cout << "Interlaced: "  << ini.ReadBool   ("record/video/interlaced") << endl;
+        cout << "Encoding: "    << ini.ReadString ("record/audio/encoding") << endl;
+        cout << "Mode: "        << ini.ReadString ("record/audio/mode") << endl;
+
+        return 0;
+    }
