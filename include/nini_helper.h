@@ -52,4 +52,66 @@ bool        nini_read_bool   (const nini_root_t *root, const char *path, char de
 }  // extern "C"
 #endif
 
+#ifdef __cplusplus
+
+namespace nini
+{
+
+/// NINI helper.
+class TNini : public TRoot
+{
+protected:
+    char deli;
+
+public:
+    /// Constructor.
+    TNini(const TFormat *format, char delimiter) : TRoot(format), deli(delimiter) {}
+
+public:
+    /// The same as nini_write_string.
+    bool WriteString(const std::string &path, const std::string &value)
+    { return nini_write_string(this, path.c_str(), this->deli, value.c_str()); }
+
+    /// The same as nini_write_decimal.
+    bool WriteDecimal(const std::string &path, long value)
+    { return nini_write_decimal(this, path.c_str(), this->deli, value); }
+
+    /// The same as nini_write_hexa.
+    bool WriteHexa(const std::string &path, long value)
+    { return nini_write_hexa(this, path.c_str(), this->deli, value); }
+
+    /// The same as nini_write_float.
+    bool WriteFloat(const std::string &path, double value)
+    { return nini_write_float(this, path.c_str(), this->deli, value); }
+
+    /// The same as nini_write_bool.
+    bool WriteBool(const std::string &path, bool value)
+    { return nini_write_bool(this, path.c_str(), this->deli, value); }
+
+    /// The same as nini_write_null.
+    bool WriteNull(const std::string &path)
+    { return nini_write_null(this, path.c_str(), this->deli); }
+
+    /// The same as nini_read_string.
+    std::string ReadString(const std::string &path, const std::string &failval="") const
+    { return nini_read_string(this, path.c_str(), this->deli, failval.c_str()); }
+
+    /// The same as nini_read_integer.
+    long ReadInteger(const std::string &path, long failval=0) const
+    { return nini_read_integer(this, path.c_str(), this->deli, failval); }
+
+    /// The same as nini_read_float.
+    double ReadFloat(const std::string &path, double failval=0) const
+    { return nini_read_float(this, path.c_str(), this->deli, failval); }
+
+    /// The same as nini_read_bool.
+    bool ReadBool(const std::string &path, bool failval=false) const
+    { return nini_read_bool(this, path.c_str(), this->deli, failval); }
+
+};
+
+}
+
+#endif
+
 #endif
