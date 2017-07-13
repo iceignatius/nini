@@ -13,7 +13,7 @@ The Nested INI is derived from the Microsoft INI format and support nested secti
      *
      * [record]
      *     desc = "The test record."
-     *     duration = 59.50  # Seconds.
+     *     duration = 59.50  ; Seconds.
      *     [video]
      *         width = 1024
      *         height = 768
@@ -26,11 +26,18 @@ The Nested INI is derived from the Microsoft INI format and support nested secti
     int main(void)
     {
         nini_root_t nini;
-        nini_root_init(&nini, &NINI_FORMAT_MSINI_NESTED);
+        nini_root_init(&nini, NINI_FORMAT_NESTED_INI);
 
-        assert( nini_root_load_file(&nini, "sample.ini", NULL);
+        assert( nini_root_load_file(&nini, "sample.ini", NULL) );
 
-        printf("Description: %s\n", nini_read_string(&nini, "record/desc", '/', NULL));
+        printf("Description: %s\n", nini_read_string (&nini, "record/desc"            , '/', NULL));
+        printf("Duration: %lf\n"  , nini_read_float  (&nini, "record/duration"        , '/', 0));
+        printf("Width: %ld\n"     , nini_read_integer(&nini, "record/video/width"     , '/', 0));
+        printf("Height: %ld\n"    , nini_read_integer(&nini, "record/video/height"    , '/', 0));
+        printf("Frame rate: %ld\n", nini_read_integer(&nini, "record/video/framerate" , '/', 0));
+        printf("Interlaced: %d\n" , nini_read_bool   (&nini, "record/video/interlaced", '/', false));
+        printf("Encoding: %s\n"   , nini_read_string (&nini, "record/audio/encoding"  , '/', ""));
+        printf("Mode: %s\n"       , nini_read_string (&nini, "record/audio/mode"      , '/', ""));
 
         nini_root_deinit(&nini);
 
@@ -38,6 +45,14 @@ The Nested INI is derived from the Microsoft INI format and support nested secti
     }
 
     /*
-     * The output will be:
+     * Then, the output will be:
+     *
      * Description: The test record.
+     * Duration: 59.500000
+     * Width: 1024
+     * Height: 768
+     * Frame rate: 30
+     * Interlaced: 0
+     * Encoding: pcm
+     * Mode: stereo
      */
