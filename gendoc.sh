@@ -1,7 +1,8 @@
+#!/bin/sh
+
 #
 # Generate documents.
 #
-#!/bin/sh
 
 doxygen
 

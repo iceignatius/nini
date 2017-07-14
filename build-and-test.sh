@@ -1,7 +1,8 @@
+#!/bin/sh
+
 #
 # Project build and test.
 #
-#!/bin/sh
 
 ./gendoc.sh
 
