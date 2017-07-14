@@ -8,6 +8,41 @@
 
 //------------------------------------------------------------------------------
 static
+void helper_prop_test(void **state)
+{
+    nini_root_t root;
+    nini_root_init(&root, &format_no_indents);
+
+    assert_true( nini_root_load_file(&root, "samples/value-types.ini", NULL) );
+
+    assert_false    ( nini_is_existed(&root, "string-fail/spaces", '/') );
+    assert_true     ( nini_is_existed(&root, "string/spaces", '/') );
+    assert_int_equal( nini_get_type  (&root, "string/spaces", '/'), NINI_STRING );
+
+    assert_false    ( nini_is_existed(&root, "integer-fail/decimal", '/') );
+    assert_true     ( nini_is_existed(&root, "integer/decimal", '/') );
+    assert_int_equal( nini_get_type  (&root, "integer/decimal", '/'), NINI_DECIMAL );
+
+    assert_false    ( nini_is_existed(&root, "integer-fail/hexadecimal", '/') );
+    assert_true     ( nini_is_existed(&root, "integer/hexadecimal", '/') );
+    assert_int_equal( nini_get_type  (&root, "integer/hexadecimal", '/'), NINI_HEXA );
+
+    assert_false    ( nini_is_existed(&root, "floating-fail/float", '/') );
+    assert_true     ( nini_is_existed(&root, "floating/float", '/') );
+    assert_int_equal( nini_get_type  (&root, "floating/float", '/'), NINI_FLOAT );
+
+    assert_false    ( nini_is_existed(&root, "boolean-fail/true", '/') );
+    assert_true     ( nini_is_existed(&root, "boolean/true", '/') );
+    assert_int_equal( nini_get_type  (&root, "boolean/true", '/'), NINI_BOOL );
+
+    assert_false    ( nini_is_existed(&root, "null-fail/null", '/') );
+    assert_true     ( nini_is_existed(&root, "null/null", '/') );
+    assert_int_equal( nini_get_type  (&root, "null/null", '/'), NINI_NULL );
+
+    nini_root_deinit(&root);
+}
+//------------------------------------------------------------------------------
+static
 void helper_read_test(void **state)
 {
     nini_root_t root;
@@ -86,6 +121,7 @@ int test_helper(void)
 {
     struct CMUnitTest tests[] =
     {
+        cmocka_unit_test(helper_prop_test),
         cmocka_unit_test(helper_read_test),
         cmocka_unit_test(helper_write_test),
         cmocka_unit_test(helper_remove_test),

@@ -111,6 +111,47 @@ bool replace_child(nini_node_t *parent, nini_node_t *new_child)
     return nini_node_link_child(parent, new_child);
 }
 //------------------------------------------------------------------------------
+bool nini_is_existed(const nini_root_t *root, const char *path, char deli)
+{
+    /**
+     * @brief Check if a key or section existed.
+     *
+     * @param root The root node of NINI nodes.
+     * @param path The path of the key to be operated, see @ref key-path for more details.
+     * @param deli The path delimiter.
+     * @return TRUE if the node does existed; and FALSE if not.
+     */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *node_path = buf;
+
+    return find_node_by_path_c(root, node_path, deli);
+}
+//------------------------------------------------------------------------------
+nini_type_t nini_get_type(const nini_root_t *root, const char *path, char deli)
+{
+    /**
+     * @brief Get the type of a key or section.
+     *
+     * @param root The root node of NINI nodes.
+     * @param path The path of the key to be operated, see @ref key-path for more details.
+     * @param deli The path delimiter.
+     * @return The type of the key.
+     *
+     * @remarks
+     * The return value is undefined if the node does not existed,
+     * we only guarantee that the return will not match
+     * any value defined in nini_type_t in this case.
+     */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *node_path = buf;
+
+    const nini_node_t *node = find_node_by_path_c(root, node_path, deli);
+
+    return node ? nini_node_get_type(node) : -1;
+}
+//------------------------------------------------------------------------------
 const char* nini_read_string(const nini_root_t *root, const char *path, char deli, const char *failval)
 {
     /**

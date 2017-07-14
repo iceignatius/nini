@@ -36,6 +36,9 @@ extern "C" {
  * or the path operation will be strange. And user will be responsible for that.
  */
 
+bool        nini_is_existed(const nini_root_t *root, const char *path, char deli);
+nini_type_t nini_get_type  (const nini_root_t *root, const char *path, char deli);
+
 const char* nini_read_string (const nini_root_t *root, const char *path, char deli, const char *failval);
 long        nini_read_integer(const nini_root_t *root, const char *path, char deli, long failval);
 double      nini_read_float  (const nini_root_t *root, const char *path, char deli, double failval);
@@ -70,6 +73,14 @@ public:
     TNini(const TFormat *format, char delimiter) : TRoot(format), deli(delimiter) {}
 
 public:
+    /// The same as nini_is_existed.
+    bool IsExisted(const std::string &path) const
+    { return nini_is_existed(this, path.c_str(), this->deli); }
+
+    /// The same as nini_get_type.
+    TType GetType(const std::string &path) const
+    { return nini_get_type(this, path.c_str(), this->deli); }
+
     /// The same as nini_read_string.
     std::string ReadString(const std::string &path, const std::string &failval="") const
     { return nini_read_string(this, path.c_str(), this->deli, failval.c_str()); }
