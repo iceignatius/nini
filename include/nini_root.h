@@ -177,6 +177,11 @@ bool nini_root_save_file(const nini_root_t *self, const char *filename, nini_err
 
 #ifdef __cplusplus
 
+#if __cplusplus < 201103L
+#undef nullptr
+#define nullptr NULL
+#endif
+
 namespace nini
 {
 
