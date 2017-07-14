@@ -43,6 +43,8 @@ bool nini_write_float  (nini_root_t *root, const char *path, char deli, double v
 bool nini_write_bool   (nini_root_t *root, const char *path, char deli, bool value);
 bool nini_write_null   (nini_root_t *root, const char *path, char deli);
 
+void nini_remove(nini_root_t *root, const char *path, char deli);
+
 const char* nini_read_string (const nini_root_t *root, const char *path, char deli, const char *failval);
 long        nini_read_integer(const nini_root_t *root, const char *path, char deli, long failval);
 double      nini_read_float  (const nini_root_t *root, const char *path, char deli, double failval);
@@ -91,6 +93,9 @@ public:
     /// The same as nini_write_null.
     bool WriteNull(const std::string &path)
     { return nini_write_null(this, path.c_str(), this->deli); }
+
+    /// The same as nini_remove.
+    void Remove(const std::string &path) { nini_remove(this, path.c_str(), this->deli); }
 
     /// The same as nini_read_string.
     std::string ReadString(const std::string &path, const std::string &failval="") const

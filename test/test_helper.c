@@ -67,12 +67,28 @@ void helper_write_test(void **state)
     nini_root_deinit(&root);
 }
 //------------------------------------------------------------------------------
+static
+void helper_remove_test(void **state)
+{
+    nini_root_t root;
+    nini_root_init(&root, &format_have_indents);
+
+    assert_true( nini_write_string(&root, "path/to/string", '/', "string with spaces") );
+    assert_string_equal( nini_read_string(&root, "path/to/string", '/', "fail-string"), "string with spaces" );
+
+    nini_remove(&root, "path/to/string", '/');
+    assert_string_equal( nini_read_string(&root, "path/to/string", '/', "fail-string"), "fail-string" );
+
+    nini_root_deinit(&root);
+}
+//------------------------------------------------------------------------------
 int test_helper(void)
 {
     struct CMUnitTest tests[] =
     {
         cmocka_unit_test(helper_read_test),
         cmocka_unit_test(helper_write_test),
+        cmocka_unit_test(helper_remove_test),
     };
 
     return cmocka_run_group_tests_name("helper_test", tests, NULL, NULL);

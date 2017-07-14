@@ -39,21 +39,27 @@ char* extract_first_name(char **path, char deli)
 }
 //------------------------------------------------------------------------------
 static
-const nini_node_t* find_node_by_path(const nini_root_t *root, char *path, char deli)
+nini_node_t* find_node_by_path(nini_root_t *root, char *path, char deli)
 {
-    const nini_node_t *parent = &root->super;
+    nini_node_t *parent = &root->super;
     if( !path || !strlen(path) ) return parent;
 
     char *name;
     while(( name = extract_first_name(&path, deli) ))
     {
-        const nini_node_t *child = nini_node_find_child_c(parent, name);
+        nini_node_t *child = nini_node_find_child(parent, name);
         if( !child ) return NULL;
 
         parent = child;
     }
 
     return parent;
+}
+//------------------------------------------------------------------------------
+static
+const nini_node_t* find_node_by_path_c(const nini_root_t *root, char *path, char deli)
+{
+    return find_node_by_path((nini_root_t*)root, path, deli);
 }
 //------------------------------------------------------------------------------
 static
@@ -284,6 +290,26 @@ bool nini_write_null(nini_root_t *root, const char *path, char deli)
     return replace_child(parent, node);
 }
 //------------------------------------------------------------------------------
+void nini_remove(nini_root_t *root, const char *path, char deli)
+{
+    /**
+     * @brief Remove a node.
+     *
+     * @param root The root node of NINI nodes.
+     * @param path The path of the key to be operated, see @ref key-path for more details.
+     * @param deli The path delimiter.
+     */
+    char buf[strlen(path)+1];
+    strncpy(buf, path, sizeof(buf));
+    char *node_path = buf;
+
+    nini_node_t *node = find_node_by_path(root, node_path, deli);
+    if( !node ) return;
+
+    nini_node_unlink(node);
+    nini_node_release(node);
+}
+//------------------------------------------------------------------------------
 const char* nini_read_string(const nini_root_t *root, const char *path, char deli, const char *failval)
 {
     /**
@@ -300,7 +326,7 @@ const char* nini_read_string(const nini_root_t *root, const char *path, char del
     strncpy(buf, path, sizeof(buf));
     char *node_path = buf;
 
-    const nini_node_t *node = find_node_by_path(root, node_path, deli);
+    const nini_node_t *node = find_node_by_path_c(root, node_path, deli);
     if( !node ) return failval;
 
     return nini_node_get_type(node) == NINI_STRING ? nini_node_get_string(node) : failval;
@@ -322,7 +348,7 @@ long nini_read_integer(const nini_root_t *root, const char *path, char deli, lon
     strncpy(buf, path, sizeof(buf));
     char *node_path = buf;
 
-    const nini_node_t *node = find_node_by_path(root, node_path, deli);
+    const nini_node_t *node = find_node_by_path_c(root, node_path, deli);
     if( !node ) return failval;
 
     return nini_node_get_type(node) == NINI_DECIMAL || nini_node_get_type(node) == NINI_HEXA ?
@@ -345,7 +371,7 @@ double nini_read_float(const nini_root_t *root, const char *path, char deli, dou
     strncpy(buf, path, sizeof(buf));
     char *node_path = buf;
 
-    const nini_node_t *node = find_node_by_path(root, node_path, deli);
+    const nini_node_t *node = find_node_by_path_c(root, node_path, deli);
     if( !node ) return failval;
 
     return nini_node_get_type(node) == NINI_FLOAT ? nini_node_get_float(node) : failval;
@@ -367,7 +393,7 @@ bool nini_read_bool(const nini_root_t *root, const char *path, char deli, bool f
     strncpy(buf, path, sizeof(buf));
     char *node_path = buf;
 
-    const nini_node_t *node = find_node_by_path(root, node_path, deli);
+    const nini_node_t *node = find_node_by_path_c(root, node_path, deli);
     if( !node ) return failval;
 
     return nini_node_get_type(node) == NINI_BOOL ? nini_node_get_bool(node) : failval;
