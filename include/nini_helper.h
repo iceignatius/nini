@@ -36,6 +36,11 @@ extern "C" {
  * or the path operation will be strange. And user will be responsible for that.
  */
 
+const char* nini_read_string (const nini_root_t *root, const char *path, char deli, const char *failval);
+long        nini_read_integer(const nini_root_t *root, const char *path, char deli, long failval);
+double      nini_read_float  (const nini_root_t *root, const char *path, char deli, double failval);
+bool        nini_read_bool   (const nini_root_t *root, const char *path, char deli, bool failval);
+
 bool nini_write_string (nini_root_t *root, const char *path, char deli, const char *value);
 bool nini_write_decimal(nini_root_t *root, const char *path, char deli, long value);
 bool nini_write_hexa   (nini_root_t *root, const char *path, char deli, long value);
@@ -44,11 +49,6 @@ bool nini_write_bool   (nini_root_t *root, const char *path, char deli, bool val
 bool nini_write_null   (nini_root_t *root, const char *path, char deli);
 
 void nini_remove(nini_root_t *root, const char *path, char deli);
-
-const char* nini_read_string (const nini_root_t *root, const char *path, char deli, const char *failval);
-long        nini_read_integer(const nini_root_t *root, const char *path, char deli, long failval);
-double      nini_read_float  (const nini_root_t *root, const char *path, char deli, double failval);
-bool        nini_read_bool   (const nini_root_t *root, const char *path, char deli, bool failval);
 
 #ifdef __cplusplus
 }  // extern "C"
@@ -70,6 +70,22 @@ public:
     TNini(const TFormat *format, char delimiter) : TRoot(format), deli(delimiter) {}
 
 public:
+    /// The same as nini_read_string.
+    std::string ReadString(const std::string &path, const std::string &failval="") const
+    { return nini_read_string(this, path.c_str(), this->deli, failval.c_str()); }
+
+    /// The same as nini_read_integer.
+    long ReadInteger(const std::string &path, long failval=0) const
+    { return nini_read_integer(this, path.c_str(), this->deli, failval); }
+
+    /// The same as nini_read_float.
+    double ReadFloat(const std::string &path, double failval=0) const
+    { return nini_read_float(this, path.c_str(), this->deli, failval); }
+
+    /// The same as nini_read_bool.
+    bool ReadBool(const std::string &path, bool failval=false) const
+    { return nini_read_bool(this, path.c_str(), this->deli, failval); }
+
     /// The same as nini_write_string.
     bool WriteString(const std::string &path, const std::string &value)
     { return nini_write_string(this, path.c_str(), this->deli, value.c_str()); }
@@ -96,22 +112,6 @@ public:
 
     /// The same as nini_remove.
     void Remove(const std::string &path) { nini_remove(this, path.c_str(), this->deli); }
-
-    /// The same as nini_read_string.
-    std::string ReadString(const std::string &path, const std::string &failval="") const
-    { return nini_read_string(this, path.c_str(), this->deli, failval.c_str()); }
-
-    /// The same as nini_read_integer.
-    long ReadInteger(const std::string &path, long failval=0) const
-    { return nini_read_integer(this, path.c_str(), this->deli, failval); }
-
-    /// The same as nini_read_float.
-    double ReadFloat(const std::string &path, double failval=0) const
-    { return nini_read_float(this, path.c_str(), this->deli, failval); }
-
-    /// The same as nini_read_bool.
-    bool ReadBool(const std::string &path, bool failval=false) const
-    { return nini_read_bool(this, path.c_str(), this->deli, failval); }
 
 };
 
