@@ -37,7 +37,7 @@ const char* get_value_str(char *buf, size_t size, const nini_node_t *node)
         break;
 
     case NINI_HEXA:
-        snprintf(buf, size, "\"%lX\"", nini_node_get_integer(node));
+        snprintf(buf, size, "\"0x%lX\"", nini_node_get_integer(node));
         break;
 
     case NINI_FLOAT:

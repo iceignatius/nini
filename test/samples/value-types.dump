@@ -6,7 +6,7 @@ string/escapes	string	"string with escape characters: \'":=#;
 	A"
 integer	section	""
 integer/decimal	decimal	"13579"
-integer/hexadecimal	hexa	"1A7B"
+integer/hexadecimal	hexa	"0x1A7B"
 floating	section	""
 floating/float	float	"3.141593"
 boolean	section	""

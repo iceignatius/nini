@@ -298,7 +298,7 @@ bool encode_value(char *buf, size_t bufsize, const nini_node_t *node)
         break;
 
     case NINI_HEXA:
-        fillsize = snprintf(buf, bufsize, " %lX", nini_node_get_integer(node));
+        fillsize = snprintf(buf, bufsize, " 0x%lX", nini_node_get_integer(node));
         break;
 
     case NINI_FLOAT:
